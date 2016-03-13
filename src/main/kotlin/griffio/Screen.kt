@@ -27,33 +27,28 @@ class WorldBuilder(val height: Int, val width: Int) {
         return Tables.transformValues(tiles, { tile -> if (Math.random() < 0.5) Tile.Floor() else Tile.Wall() })
     }
 
-    fun incrementTile(row: Int, column: Int): Int = when (worldTiles.get(row, column)) {
-        is Tile.Floor -> 1
-        is Tile.Wall -> -1
-        else -> 0
-    }
-
     fun smooth(tiles: Table<Int, Int, Tile>): Table<Int, Int, Tile> {
 
         var result = tiles
 
         val tiles2 = ArrayTable.create<Int, Int, Tile>(0..height - 1, 0..width - 1)
 
-        for (time in 1..8) {
-            (0..width - 1).forEach { x ->
-                (0..height - 1).forEach { y ->
-                    var floors: Int = 0
-                    var rocks: Int = 0
-                    (-1..1).forEach { ox ->
-                        (-1..1).forEach { oy ->
-                            when (result.get(x + ox, y + oy)) {
-                                is Tile.Floor -> floors++
-                                is Tile.Wall -> rocks++
-                            }
+        1.rangeTo(8).forEach {
+            for (tileCell in result.cellSet()) {
+                val col = tileCell.columnKey
+                val row = tileCell.rowKey
+                var floors: Int = 0
+                var walls: Int = 0
+                (-1..1).forEach { ox ->
+                    (-1..1).forEach { oy ->
+                        when (result.get(row?.plus(oy), col?.plus(ox))) {
+                            is Tile.Floor -> floors = floors.inc()
+                            is Tile.Wall -> walls = walls.inc()
                         }
                     }
-                    tiles2.put(y, x, if (floors >= rocks) Tile.Floor() else Tile.Wall())
                 }
+                tiles2.put(tileCell.rowKey, tileCell.columnKey,
+                        if (floors >= walls) Tile.Floor() else Tile.Wall())
             }
             result = tiles2
         }
@@ -114,5 +109,5 @@ fun main(args: Array<String>) {
 
 fun draw(writer: DefaultWriter) {
     writer.centerString("Press any key to quit...", ScreenCharacterStyle.Blinking)
-    writer.drawString(0, writer.screen.terminalSize.rows -1, "griffio 2016", ScreenCharacterStyle.Underline)
+    writer.drawString(0, writer.screen.terminalSize.rows - 1, "griffio 2016", ScreenCharacterStyle.Underline)
 }
