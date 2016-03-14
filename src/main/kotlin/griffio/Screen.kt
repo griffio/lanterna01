@@ -11,7 +11,7 @@ import com.googlecode.lanterna.terminal.Terminal
 
 sealed class Tile(val char: String, val color: Terminal.Color) {
     class Floor() : Tile("\u00B7", Terminal.Color.YELLOW)
-    class Wall() : Tile("\u2588", Terminal.Color.CYAN)
+    class Wall() : Tile("\u2593", Terminal.Color.CYAN)
     class Bounds() : Tile("x", Terminal.Color.BLACK)
 }
 
@@ -71,21 +71,41 @@ class DefaultWriter(val screen: Screen) : ScreenWriter(screen) {
     }
 }
 
+class WorldWriter(val screen: Screen) : ScreenWriter(screen) {
+
+    init {
+        backgroundColor = Terminal.Color.DEFAULT
+    }
+
+    fun drawWorld() {
+
+        val world = WorldBuilder(screen.terminalSize.rows, screen.terminalSize.columns).build()
+
+        val tiles = world.tiles.cellSet()
+
+        for (tile in tiles) {
+            screen.putString(tile.columnKey!!, tile.rowKey!!, tile.value?.char, tile.value?.color, Terminal.Color.DEFAULT)
+        }
+    }
+
+    fun centerString(text: String, vararg styles: ScreenCharacterStyle) {
+        val x = (screen.terminalSize.columns - text.length) / 2
+        val y = screen.terminalSize.rows / 2
+        super.drawString(x, y, text, *styles)
+    }
+
+}
+
 fun main(args: Array<String>) {
     val term = TerminalFacade.createTerminal()
     val screen = Screen(term)
     val writerDefault = DefaultWriter(screen)
+    val worldWriter = WorldWriter(screen)
 
     screen.setPaddingCharacter(' ', Terminal.Color.DEFAULT, Terminal.Color.DEFAULT)
     screen.startScreen()
 
-    val world = WorldBuilder(screen.terminalSize.rows, screen.terminalSize.columns).build()
-
-    val tiles = world.tiles.cellSet()
-
-    for (tile in tiles) {
-        screen.putString(tile.columnKey!!, tile.rowKey!!, tile.value?.char, tile.value?.color, Terminal.Color.DEFAULT)
-    }
+    worldWriter.drawWorld()
 
     draw(writerDefault)
     screen.refresh()
@@ -95,11 +115,12 @@ fun main(args: Array<String>) {
     while (key == null) {
         if (screen.resizePending()) {
             screen.clear()
+            worldWriter.drawWorld()
             draw(writerDefault)
             screen.refresh()
         }
 
-        Thread.sleep(5)
+        Thread.sleep(25)
         key = term.readInput()
     }
 
