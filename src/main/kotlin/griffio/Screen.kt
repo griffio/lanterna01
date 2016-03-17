@@ -19,6 +19,10 @@ class WorldBuilder(val height: Int, val width: Int) {
 
     var worldTiles: Table<Int, Int, Tile> = randomWorld(ArrayTable.create<Int, Int, Tile>(0..height - 1, 0..width - 1))
 
+    val smoothing = 1..8
+
+    val offset = -1..1
+
     fun build(): WorldView {
         return WorldView(smooth(worldTiles))
     }
@@ -33,19 +37,19 @@ class WorldBuilder(val height: Int, val width: Int) {
 
         val tiles2 = ArrayTable.create<Int, Int, Tile>(0..height - 1, 0..width - 1)
 
-        1.rangeTo(8).forEach {
+        smoothing.forEach {
             for (tileCell in result.cellSet()) {
                 val col = tileCell.columnKey
                 val row = tileCell.rowKey
                 var floors: Int = 0
                 var walls: Int = 0
-                (-1..1).forEach { ox ->
-                    (-1..1).forEach { oy ->
+                offset.forEach { ox ->
+                    (offset.forEach { oy ->
                         when (result.get(row?.plus(oy), col?.plus(ox))) {
                             is Tile.Floor -> floors = floors.inc()
                             is Tile.Wall -> walls = walls.inc()
                         }
-                    }
+                    })
                 }
                 tiles2.put(tileCell.rowKey, tileCell.columnKey,
                         if (floors >= walls) Tile.Floor() else Tile.Wall())
