@@ -1,7 +1,7 @@
 plugins {
   id "application"
   id "wrapper"
-  id "com.zoltu.kotlin" version "1.0.2"
+  id "org.jetbrains.kotlin.jvm" version "1.1.4-2"
 }
 
 repositories {
@@ -10,12 +10,12 @@ repositories {
 
 dependencies {
 
-  ext.kotlin_version = "1.0.2"
-  ext.guava_version = "19.0"
+  ext.kotlin_version = "1.1.4-2"
+  ext.guava_version = "23.0"
 
-  compile("com.googlecode.lanterna:lanterna:2.1.9") { transitive = false }
+  compile("com.googlecode.lanterna:lanterna:3.0.0") { transitive = false }
 
-  compile("org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}",
+  compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version",
           "com.google.guava:guava:${guava_version}"
   )
 
@@ -27,7 +27,12 @@ dependencies {
 mainClassName = "griffio.ScreenKt"
 
 wrapper {
-  gradleVersion = 2.11
+  gradleVersion = "4.0"
+}
+compileKotlin {
+    kotlinOptions {
+        apiVersion = "1.1"
+    }
 }
 
 
